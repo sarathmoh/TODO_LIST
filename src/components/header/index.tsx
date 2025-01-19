@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "../../context/authContext";
-import useOnlineStatus from "../../utils/useOnlineStatus";
+import useOnlineStatus from "../../utils/customHooks/useOnlineStatus";
 import online from "../../assets/images/icons8-connection-status-on-96.png";
 import offline from "../../assets/images/icons8-offline-96.png";
 import UserAvatar from "../avatar";

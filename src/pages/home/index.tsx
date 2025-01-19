@@ -1,19 +1,20 @@
 import React from "react";
 import TaskCard from "../../components/taskCard";
-import { Button } from "@mui/material";
-import { AddCircle } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 
 const HomeContainer: React.FC = () => {
+  const navigate = useNavigate();
   return (
     <div className="home-container">
-      <Button
-        variant="contained"
-        color="primary"
-        startIcon={<AddCircle />}
-        style={{ marginTop: "15px", marginLeft: "15px" }}
+      <button
+        className="btn text-white font-bold bg-red-600 p-3 rounded-2xl cursor-pointer mt-4 mx-5"
+        onClick={() => {
+          navigate("/home/add");
+        }}
       >
         Add Task
-      </Button>
+      </button>
+
       <TaskCard />
     </div>
   );
