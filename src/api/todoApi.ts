@@ -51,7 +51,6 @@ export const deleteItem = async (taskId) => {
 };
 
 export const filterApi = async (filters: { [key: string]: any }) => {
-  console.log(filters, "front-end filter");
   try {
     const response = await apiClient.get("/todo", {
       params: filters,
