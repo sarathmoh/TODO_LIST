@@ -42,7 +42,7 @@ const TaskItem: React.FC<TaskItemProps> = ({ task, onDelete, navigate }) => {
           }}
           className="btn text-white font-bold bg-blue-500 p-3 rounded-2xl cursor-pointer hover:bg-blue-900"
         >
-          Update
+          Edit
         </button>
         <button
           onClick={() => onDelete(task.id)}
