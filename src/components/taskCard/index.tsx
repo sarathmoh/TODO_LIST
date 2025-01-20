@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getTasks } from "../../api/todoApi";
 import { getUsers } from "../../api/userApi";
+import { deleteItem } from "../../api/todoApi";
 import { useNavigate } from "react-router-dom";
 
 const TaskCard: React.FC = () => {
@@ -8,6 +9,8 @@ const TaskCard: React.FC = () => {
   const [users, setUsers] = useState<any[]>([]);
   const [loadingTasks, setLoadingTasks] = useState<boolean>(true);
   const [loadingUsers, setLoadingUsers] = useState<boolean>(true);
+  const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -42,6 +45,27 @@ const TaskCard: React.FC = () => {
 
     fetchUsers();
   }, []);
+
+  const openDeleteModal = (taskId: string) => {
+    setTaskToDelete(taskId);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (taskId: string) => {
+    try {
+      await deleteItem(taskId);
+      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+      setIsModalOpen(false);
+    } catch (err: any) {
+      setError("Failed to delete task");
+      setIsModalOpen(false);
+    }
+  };
+
+  const closeDeleteModal = () => {
+    setIsModalOpen(false);
+    setTaskToDelete(null);
+  };
 
   const enhancedTasks = tasks.map((task: any) => {
     const user = users.find(
@@ -102,13 +126,39 @@ const TaskCard: React.FC = () => {
               >
                 Update
               </button>
-              <button className="btn text-white font-bold bg-red-600 p-3 rounded-2xl cursor-pointer hover:bg-red-900">
+              <button
+                onClick={() => openDeleteModal(task.id)}
+                className="btn text-white font-bold bg-red-600 p-3 rounded-2xl cursor-pointer hover:bg-red-900"
+              >
                 Delete
               </button>
             </div>
           </div>
         ))}
       </div>
+      {isModalOpen && (
+        <div className="absolute top-0 left-0 w-full h-full bg-gray-500 bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg">
+            <p className="text-xl">
+              Are you sure you want to delete this task?
+            </p>
+            <div className="mt-4">
+              <button
+                onClick={() => handleDelete(taskToDelete!)}
+                className="btn text-white font-bold bg-red-600 p-3 rounded-2xl cursor-pointer hover:bg-red-900 mr-4"
+              >
+                Confirm
+              </button>
+              <button
+                onClick={closeDeleteModal}
+                className="btn text-white font-bold bg-gray-600 p-3 rounded-2xl cursor-pointer hover:bg-gray-900"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
