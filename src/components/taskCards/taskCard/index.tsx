@@ -12,10 +12,13 @@ const TaskCard: React.FC = () => {
   const [loadingTasks, setLoadingTasks] = useState<boolean>(true);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [status, setStatus] = useState<string>(""); // Status filter
-  const [assignedUser, setAssignedUser] = useState<string>(""); // Assigned user filter
+  const [status, setStatus] = useState<string>("");
+  const [assignedUser, setAssignedUser] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<string>("");
+  const [sort, setSort] = useState<boolean>(false);
+  const [orderBy, setOrderBy] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,7 +52,11 @@ const TaskCard: React.FC = () => {
     const fetchTasks = async () => {
       setLoading(true);
       try {
-        const filters = { status, assignedUser };
+        const filters = {
+          status,
+          assignedUser,
+          _sort: sortBy,
+        };
         const filteredTasks = await filterApi(filters);
         const enhancedTasks = filteredTasks?.map((task: any) => {
           const user = users?.find(
@@ -69,7 +76,7 @@ const TaskCard: React.FC = () => {
     };
 
     fetchTasks();
-  }, [status, assignedUser]);
+  }, [status, assignedUser, sort]);
 
   const openDeleteModal = (taskId: string) => {
     setTaskToDelete(taskId);
@@ -100,6 +107,28 @@ const TaskCard: React.FC = () => {
     setAssignedUser(filters.assignedUser);
   };
 
+  const sortHandler = (value) => {
+    switch (value) {
+      case "dueDate-asc":
+        setSortBy("dueDate");
+        break;
+
+      case "title-asc": 
+        setSortBy("title");
+        break;
+
+      case "dueDate-desc":
+        setSortBy("-dueDate");
+        break;
+
+      case "title-desc":
+        setSortBy("-title");
+        break;
+    }
+
+    setSort((prev) => !prev);
+  };
+
   if (loadingTasks) return <div className="text-center mt-4">Loading...</div>;
   if (error)
     return <div className="text-center text-red-500 mt-4">{error}</div>;
@@ -113,7 +142,7 @@ const TaskCard: React.FC = () => {
         users={users}
         onFilterChange={handleFilterChange}
       />
-      <TaskSort />
+      <TaskSort onSortChange={sortHandler} />
 
       <TaskList tasks={tasks} onDelete={openDeleteModal} navigate={navigate} />
       {isModalOpen && (
