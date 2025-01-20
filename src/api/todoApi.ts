@@ -40,21 +40,18 @@ export const updateItem = async (id, itemData) => {
   }
 };
 
-
 export const deleteItem = async (taskId) => {
   try {
     const response = await apiClient.delete(`/todo/${taskId}`);
-    return response.data; 
+    return response.data;
   } catch (error) {
     console.error("Error deleting item:", error);
-    throw error;  
+    throw error;
   }
 };
 
-
-export const filterApi = async (filters) => {
-  console.log(filters,"front-end filter");
-  
+export const filterApi = async (filters: { [key: string]: any }) => {
+  console.log(filters, "front-end filter");
   try {
     const response = await apiClient.get("/todo", {
       params: filters,

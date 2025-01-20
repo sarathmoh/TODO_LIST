@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { getTasks,deleteItem } from "../../../api/todoApi";
+import { getTasks, deleteItem, filterApi } from "../../../api/todoApi";
 import { getUsers } from "../../../api/userApi";
 import { useNavigate } from "react-router-dom";
 import TaskList from "../taskList";
+import TaskFilter from "../taskCardFilter";
+import TaskSort from "../taskSort";
 
 const TaskCard: React.FC = () => {
   const [tasks, setTasks] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loadingTasks, setLoadingTasks] = useState<boolean>(true);
-  const [loadingUsers, setLoadingUsers] = useState<boolean>(true);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [status, setStatus] = useState<string>(""); // Status filter
+  const [assignedUser, setAssignedUser] = useState<string>(""); // Assigned user filter
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -18,7 +22,18 @@ const TaskCard: React.FC = () => {
     const fetchTasks = async () => {
       try {
         const taskResponse = await getTasks();
-        setTasks(taskResponse);
+        const userResponse = await getUsers();
+        const enhancedTasks = taskResponse?.map((task: any) => {
+          const user = userResponse?.find(
+            (user: any) => user.id === task.assignedUser
+          );
+          return {
+            ...task,
+            assignedUserName: user ? user.name : "Unknown User",
+          };
+        });
+        setTasks(enhancedTasks);
+        setUsers(userResponse);
         setLoadingTasks(false);
       } catch (error) {
         console.error("Error fetching tasks:", error);
@@ -31,20 +46,30 @@ const TaskCard: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchTasks = async () => {
+      setLoading(true);
       try {
-        const userResponse = await getUsers();
-        setUsers(userResponse.data);
-        setLoadingUsers(false);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        setError("Failed to load users.");
-        setLoadingUsers(false);
+        const filters = { status, assignedUser };
+        const filteredTasks = await filterApi(filters);
+        const enhancedTasks = filteredTasks?.map((task: any) => {
+          const user = users?.find(
+            (user: any) => user.id === task.assignedUser
+          );
+          return {
+            ...task,
+            assignedUserName: user ? user.name : "Unknown User",
+          };
+        });
+        setTasks(enhancedTasks);
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to load tasks.");
+        setLoading(false);
       }
     };
 
-    fetchUsers();
-  }, []);
+    fetchTasks();
+  }, [status, assignedUser]);
 
   const openDeleteModal = (taskId: string) => {
     setTaskToDelete(taskId);
@@ -67,29 +92,30 @@ const TaskCard: React.FC = () => {
     setTaskToDelete(null);
   };
 
-  const enhancedTasks = tasks.map((task: any) => {
-    const user = users.find(
-      (user: any) => String(user.id) === String(task.assignedUser)
-    );
-    return {
-      ...task,
-      assignedUserName: user ? user.name : "Unknown User",
-    };
-  });
+  const handleFilterChange = (filters: {
+    status: string;
+    assignedUser: string;
+  }) => {
+    setStatus(filters.status);
+    setAssignedUser(filters.assignedUser);
+  };
 
-  if (loadingTasks || loadingUsers)
-    return <div className="text-center mt-4">Loading...</div>;
+  if (loadingTasks) return <div className="text-center mt-4">Loading...</div>;
   if (error)
     return <div className="text-center text-red-500 mt-4">{error}</div>;
 
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-2 text-center">Task List</h1>
-      <TaskList 
-        tasks={enhancedTasks} 
-        onDelete={openDeleteModal} 
-        navigate={navigate}
+      <TaskFilter
+        status={status}
+        assignedUser={assignedUser}
+        users={users}
+        onFilterChange={handleFilterChange}
       />
+      <TaskSort />
+
+      <TaskList tasks={tasks} onDelete={openDeleteModal} navigate={navigate} />
       {isModalOpen && (
         <div className="absolute top-0 left-0 w-full h-full bg-gray-500 bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg">
