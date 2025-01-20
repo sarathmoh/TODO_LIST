@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import TaskList from "../taskList";
 import TaskFilter from "../taskCardFilter";
 import TaskSort from "../taskSort";
+import useDebounce from "../../../utils/customHooks/useDebounce";
 
 const TaskCard: React.FC = () => {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -18,8 +19,9 @@ const TaskCard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>("");
   const [sort, setSort] = useState<boolean>(false);
-  const [orderBy, setOrderBy] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const navigate = useNavigate();
+  const debounceSearchTerm = useDebounce(searchTerm, 300);
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -56,6 +58,7 @@ const TaskCard: React.FC = () => {
           status,
           assignedUser,
           _sort: sortBy,
+          title: debounceSearchTerm,
         };
         const filteredTasks = await filterApi(filters);
         const enhancedTasks = filteredTasks?.map((task: any) => {
@@ -76,7 +79,7 @@ const TaskCard: React.FC = () => {
     };
 
     fetchTasks();
-  }, [status, assignedUser, sort]);
+  }, [status, assignedUser, sort, debounceSearchTerm]);
 
   const openDeleteModal = (taskId: string) => {
     setTaskToDelete(taskId);
@@ -113,7 +116,7 @@ const TaskCard: React.FC = () => {
         setSortBy("dueDate");
         break;
 
-      case "title-asc": 
+      case "title-asc":
         setSortBy("title");
         break;
 
@@ -143,6 +146,16 @@ const TaskCard: React.FC = () => {
         onFilterChange={handleFilterChange}
       />
       <TaskSort onSortChange={sortHandler} />
+
+      <div className="w-full max-w-sm mx-auto">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search tasks..."
+          className="w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-2 mb-5 focus:ring-blue-500 focus:outline-none"
+        />
+      </div>
 
       <TaskList tasks={tasks} onDelete={openDeleteModal} navigate={navigate} />
       {isModalOpen && (
