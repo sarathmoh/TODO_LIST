@@ -39,3 +39,14 @@ export const updateItem = async (id, itemData) => {
     throw error;
   }
 };
+
+
+export const deleteItem = async (taskId) => {
+  try {
+    const response = await apiClient.delete(`/todo/${taskId}`);
+    return response.data; 
+  } catch (error) {
+    console.error("Error deleting item:", error);
+    throw error;  
+  }
+};
