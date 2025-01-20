@@ -6,6 +6,7 @@ import TaskList from "../taskList";
 import TaskFilter from "../taskCardFilter";
 import TaskSort from "../taskSort";
 import useDebounce from "../../../utils/customHooks/useDebounce";
+import Loader from "../../loader";
 
 const TaskCard: React.FC = () => {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -132,7 +133,9 @@ const TaskCard: React.FC = () => {
     setSort((prev) => !prev);
   };
 
-  if (loadingTasks) return <div className="text-center mt-4">Loading...</div>;
+  if (loadingTasks) return <Loader/>
+  if (tasks.length === 0)
+    return <div className="text-center mt-4">Sorry no task found </div>;
   if (error)
     return <div className="text-center text-red-500 mt-4">{error}</div>;
 

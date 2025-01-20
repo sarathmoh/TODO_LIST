@@ -4,6 +4,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { format } from "date-fns";
 import useTaskFormData from "../../utils/customHooks/useTaskFormData";
+import Loader from "../loader";
 
 const schema = yup.object().shape({
   title: yup.string().required("Title is required"),
@@ -72,7 +73,7 @@ const AddForm = ({
     }
   };
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <Loader/>;
   if (error) return <p className="text-red-500">Error: {error}</p>;
 
   return (
