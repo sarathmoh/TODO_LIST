@@ -1,5 +1,5 @@
 import React from "react";
-import TaskCard from "../../components/taskCard";
+import TaskCard from "../../components/taskCards/taskCard";
 import { useNavigate } from "react-router-dom";
 
 const HomeContainer: React.FC = () => {
