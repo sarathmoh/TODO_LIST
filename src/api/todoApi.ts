@@ -50,3 +50,18 @@ export const deleteItem = async (taskId) => {
     throw error;  
   }
 };
+
+
+export const filterApi = async (filters) => {
+  console.log(filters,"front-end filter");
+  
+  try {
+    const response = await apiClient.get("/todo", {
+      params: filters,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    throw error;
+  }
+};
