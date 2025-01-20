@@ -10,12 +10,13 @@ const Login = lazy(() => import("../pages/auth/login"));
 const PageNotFound = lazy(() => import("../components/pageNotFound"));
 const Layout = lazy(() => import("../components/layout"));
 import PrivateRoutes from "./private";
+import Loader from "../components/loader";
 
 const AppRoutes = () => {
   const { isAuthenticated } = useAuthContext();
 
   return (
-    <Suspense fallback={<h1>Loading...</h1>}>
+    <Suspense fallback={<Loader />}>
       <Router>
         <Routes>
           <Route
