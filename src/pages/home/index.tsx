@@ -14,7 +14,6 @@ const HomeContainer: React.FC = () => {
       >
         Add Task
       </button>
-
       <TaskCard />
     </div>
   );

@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { getUsers } from "../../api/userApi";
 import { format } from "date-fns";
+import useTaskFormData from "../../utils/customHooks/useTaskFormData";
 
 const schema = yup.object().shape({
   title: yup.string().required("Title is required"),
@@ -23,69 +23,70 @@ const schema = yup.object().shape({
     .optional(),
 });
 
-type FormInputs = yup.InferType<typeof schema>;
+const AddForm = ({
+  taskId,
+  onSubmit: handleExternalSubmit,
+  onCancel: handleExternalCancel,
+}: {
+  taskId?: string;
+  onSubmit?: (data: any) => void;
+  onCancel?: () => void;
+}) => {
+  const { userList, taskDetails, loading, error, createTask, updateTask } =
+    useTaskFormData(taskId);
 
-interface AddTaskFormProps {
-  onSubmit: (task: FormInputs) => void;
-  onClose: () => void;
-}
-
-interface UserInfo {
-  id: string;
-  name: string;
-}
-
-const AddTask: React.FC<AddTaskFormProps> = ({ onSubmit, onClose }) => {
-  const [userList, setUserList] = useState<UserInfo[]>([]);
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
-  } = useForm<FormInputs>({
+  } = useForm({
     resolver: yupResolver(schema),
   });
 
-  const onFormSubmit: SubmitHandler<FormInputs> = (data) => {
-    if (data?.dueDate) {
-      const formattedDate = format(new Date(data.dueDate), "yyyy-MM-dd");
-      data.dueDate = formattedDate;
-    }
-    const assignedUsedId = data.assignedUser;
-    const formattedData = {
-      ...data,
-      id: assignedUsedId,
-
-      tags: data.tags || [],
-    };
-    console.log(formattedData, "heloooo");
-
-    onSubmit(formattedData);
-    onClose();
-  };
-
-  const getUsersData = async () => {
-    try {
-      const response = await getUsers();
-      setUserList(response?.data);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  };
-
   useEffect(() => {
-    getUsersData();
-  }, []);
+    if (taskDetails) {
+      reset({
+        ...taskDetails,
+        dueDate: format(new Date(taskDetails.dueDate), "yyyy-MM-dd"),
+      });
+    }
+  }, [taskDetails, reset]);
+
+  const onSubmit: SubmitHandler<any> = async (data) => {
+    try {
+      const formattedData = {
+        ...data,
+        dueDate: format(new Date(data.dueDate), "yyyy-MM-dd"),
+      };
+
+      if (taskId) {
+        await updateTask(taskId, formattedData);
+      } else {
+        await createTask(formattedData);
+      }
+
+      if (handleExternalSubmit) handleExternalSubmit(data);
+    } catch (err) {
+      console.error("Error submitting task:", err);
+    }
+  };
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p className="text-red-500">Error: {error}</p>;
 
   return (
     <div className="bg-white rounded-lg shadow-lg w-full max-w-md mx-auto mt-6 p-5 border-4 border-red-500">
-      <h3 className="text-xl font-bold mb-4">Add New Task</h3>
-      <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
+      <h3 className="text-xl font-bold mb-4">
+        {taskId ? "Edit Task" : "Add New Task"}
+      </h3>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <label>Title</label>
           <input
             {...register("title")}
             id="title"
-            className={`mt-1 block w-full p-2 border`}
+            className="mt-1 block w-full p-2 border"
             placeholder="Enter task title"
           />
           {errors.title && (
@@ -98,7 +99,7 @@ const AddTask: React.FC<AddTaskFormProps> = ({ onSubmit, onClose }) => {
           <select
             {...register("status")}
             id="status"
-            className={`mt-1 block w-full p-2 border`}
+            className="mt-1 block w-full p-2 border"
           >
             <option value="todo">To Do</option>
             <option value="inProgress">In Progress</option>
@@ -115,7 +116,7 @@ const AddTask: React.FC<AddTaskFormProps> = ({ onSubmit, onClose }) => {
             {...register("dueDate")}
             type="date"
             id="dueDate"
-            className={`mt-1 block w-full p-2 border`}
+            className="mt-1 block w-full p-2 border"
           />
           {errors.dueDate && (
             <p className="text-red-500 text-sm mt-1">
@@ -130,7 +131,7 @@ const AddTask: React.FC<AddTaskFormProps> = ({ onSubmit, onClose }) => {
             {...register("description")}
             id="description"
             rows={2}
-            className={`mt-1 block w-full p-2 border`}
+            className="mt-1 block w-full p-2 border"
             placeholder="Enter task description"
           />
           {errors.description && (
@@ -145,10 +146,10 @@ const AddTask: React.FC<AddTaskFormProps> = ({ onSubmit, onClose }) => {
           <select
             {...register("assignedUser")}
             id="assignedUser"
-            className={`mt-1 block w-full p-2 border`}
+            className="mt-1 block w-full p-2 border"
           >
             {userList.map((user) => (
-              <option key={user.id} value={user.id.toString()}>
+              <option key={user.id} value={user.id}>
                 {user.name}
               </option>
             ))}
@@ -165,7 +166,7 @@ const AddTask: React.FC<AddTaskFormProps> = ({ onSubmit, onClose }) => {
           <select
             {...register("priority")}
             id="priority"
-            className={`mt-1 block w-full p-2 border`}
+            className="mt-1 block w-full p-2 border"
           >
             <option value="">None</option>
             <option value="low">Low</option>
@@ -174,20 +175,10 @@ const AddTask: React.FC<AddTaskFormProps> = ({ onSubmit, onClose }) => {
           </select>
         </div>
 
-        {/* <div>
-          <label>Tags (Comma separated)</label>
-          <input
-            {...register("tags")}
-            id="tags"
-            className={`mt-1 block w-full p-2 border`}
-            placeholder="Enter tags separated by commas"
-          />
-        </div> */}
-
         <div className="flex justify-end space-x-4">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleExternalCancel ? handleExternalCancel : undefined}
             className="px-4 py-2 bg-gray-500 text-white rounded-md"
           >
             Cancel
@@ -196,7 +187,7 @@ const AddTask: React.FC<AddTaskFormProps> = ({ onSubmit, onClose }) => {
             type="submit"
             className="px-4 py-2 bg-red-600 text-white rounded-md"
           >
-            Submit
+            {taskId ? "Update Task" : "Submit Task"}
           </button>
         </div>
       </form>
@@ -204,4 +195,4 @@ const AddTask: React.FC<AddTaskFormProps> = ({ onSubmit, onClose }) => {
   );
 };
 
-export default AddTask;
+export default AddForm;

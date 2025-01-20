@@ -1,6 +1,6 @@
 import { lazy } from "react";
 const Home = lazy(() => import("../../pages/home"));
-const AddTaskPage = lazy(() => import("../../pages/taskPage"));
+const AddTaskPage = lazy(() => import("../../pages/addTask"));
 const EditTask = lazy(() => import("../../pages/editTask"));
 const PrivateRoutes = [
   {
