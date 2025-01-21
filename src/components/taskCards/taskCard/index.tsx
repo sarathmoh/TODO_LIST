@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getTasks, deleteItem, filterApi } from "../../../api/todoApi";
+import { deleteItem, filterApi } from "../../../api/todoApi";
 import { getUsers } from "../../../api/userApi";
 import { useNavigate } from "react-router-dom";
 import TaskList from "../taskList";
@@ -8,49 +8,25 @@ import TaskSort from "../taskSort";
 import useDebounce from "../../../utils/customHooks/useDebounce";
 import Loader from "../../loader";
 import { toast } from "react-toastify";
+import ReactPaginate from "react-paginate";
 
 const TaskCard: React.FC = () => {
   const [tasks, setTasks] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
-  const [loadingTasks, setLoadingTasks] = useState<boolean>(true);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [status, setStatus] = useState<string>("");
   const [assignedUser, setAssignedUser] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<string>("");
+  const [sortBy, setSortBy] = useState<string>("title");
   const [sort, setSort] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const navigate = useNavigate();
   const debounceSearchTerm = useDebounce(searchTerm, 300);
-
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const taskResponse = await getTasks();
-        const userResponse = await getUsers();
-        const enhancedTasks = taskResponse?.map((task: any) => {
-          const user = userResponse?.find(
-            (user: any) => user.id === task.assignedUser
-          );
-          return {
-            ...task,
-            assignedUserName: user ? user.name : "Unknown User",
-          };
-        });
-        setTasks(enhancedTasks);
-        setUsers(userResponse);
-        setLoadingTasks(false);
-      } catch (error) {
-        console.error("Error fetching tasks:", error);
-        setError("Failed to load tasks.");
-        setLoadingTasks(false);
-      }
-    };
-
-    fetchTasks();
-  }, []);
+  const [pageNo, setPageNo] = useState(0);
+  const [pageLimit, setPageLimit] = useState(3);
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -61,10 +37,14 @@ const TaskCard: React.FC = () => {
           assignedUser,
           _sort: sortBy,
           title: debounceSearchTerm,
+          _page: pageNo + 1,
+          _per_page: pageLimit,
         };
         const filteredTasks = await filterApi(filters);
-        const enhancedTasks = filteredTasks?.map((task: any) => {
-          const user = users?.find(
+
+        const userResponse = await getUsers();
+        const enhancedTasks = filteredTasks.data?.map((task: any) => {
+          const user = userResponse?.find(
             (user: any) => user.id === task.assignedUser
           );
           return {
@@ -72,7 +52,9 @@ const TaskCard: React.FC = () => {
             assignedUserName: user ? user.name : "Unknown User",
           };
         });
+        setTotalPages(Math.ceil(filteredTasks?.items / pageLimit));
         setTasks(enhancedTasks);
+        setUsers(userResponse);
         setLoading(false);
       } catch (err) {
         setError("Failed to load tasks.");
@@ -81,7 +63,7 @@ const TaskCard: React.FC = () => {
     };
 
     fetchTasks();
-  }, [status, assignedUser, sort, debounceSearchTerm]);
+  }, [status, assignedUser, sort, debounceSearchTerm, pageNo]);
 
   const openDeleteModal = (taskId: string) => {
     setTaskToDelete(taskId);
@@ -113,7 +95,7 @@ const TaskCard: React.FC = () => {
     setAssignedUser(filters.assignedUser);
   };
 
-  const sortHandler = (value:string) => {
+  const sortHandler = (value: string) => {
     switch (value) {
       case "dueDate-asc":
         setSortBy("dueDate");
@@ -135,9 +117,10 @@ const TaskCard: React.FC = () => {
     setSort((prev) => !prev);
   };
 
-  if (loadingTasks) return <Loader />;
-  if (tasks.length === 0)
-    return <div className="text-center mt-4">Sorry no task found </div>;
+  const handlePageChange = (selectedItem: { selected: number }) => {
+    setPageNo(selectedItem.selected);
+  };
+
   if (error)
     return <div className="text-center text-red-500 mt-4">{error}</div>;
 
@@ -157,12 +140,41 @@ const TaskCard: React.FC = () => {
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search tasks..."
+          placeholder="Search tasks by title..."
           className="w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-2 mb-5 focus:ring-blue-500 focus:outline-none"
         />
       </div>
 
-      <TaskList tasks={tasks} onDelete={openDeleteModal} navigate={navigate} />
+      {loading ? (
+        <Loader />
+      ) : tasks.length !== 0 ? (
+        <TaskList
+          tasks={tasks}
+          onDelete={openDeleteModal}
+          navigate={navigate}
+        />
+      ) : (
+        <p className="text-center text-red-600">No Tasks Found</p>
+      )}
+      {tasks.length !== 0 && (
+        <div>
+          <ReactPaginate
+            previousLabel={"Previous"}
+            nextLabel={"Next"}
+            breakLabel={"..."}
+            pageCount={totalPages}
+            onPageChange={handlePageChange}
+            containerClassName={
+              "flex justify-center items-center space-x-2 mt-4"
+            }
+            pageClassName={"cursor-pointer p-2 rounded border"}
+            pageLinkClassName={"block text-center"}
+            activeClassName={"bg-blue-500 text-white"}
+            disabledClassName={"bg-gray-300 cursor-not-allowed p-2 rounded-xl"}
+          />
+        </div>
+      )}
+
       {isModalOpen && (
         <div className="absolute top-0 left-0 w-full h-full bg-gray-500 bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg">
