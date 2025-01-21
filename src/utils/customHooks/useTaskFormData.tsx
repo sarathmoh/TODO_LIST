@@ -5,10 +5,11 @@ import {
   getSpecificUser,
   updateItem,
 } from "../../api/todoApi";
+import { Task } from "../../interfaces/api/interfaces";
 
 const useTaskFormData = (taskId?: string) => {
   const [userList, setUserList] = useState([]);
-  const [taskDetails, setTaskDetails] = useState(null);
+  const [taskDetails, setTaskDetails] = useState<Task| null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +20,7 @@ const useTaskFormData = (taskId?: string) => {
 
       try {
         const users = await getUsers();
-        setUserList(users.data || []);
+        setUserList(users || []);
 
         if (taskId) {
           const task = await getSpecificUser(taskId);

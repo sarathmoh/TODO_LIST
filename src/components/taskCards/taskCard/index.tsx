@@ -7,6 +7,7 @@ import TaskFilter from "../taskCardFilter";
 import TaskSort from "../taskSort";
 import useDebounce from "../../../utils/customHooks/useDebounce";
 import Loader from "../../loader";
+import { toast } from "react-toastify";
 
 const TaskCard: React.FC = () => {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -91,6 +92,7 @@ const TaskCard: React.FC = () => {
     try {
       await deleteItem(taskId);
       setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+      toast.success("Task deleted successfully ");
       setIsModalOpen(false);
     } catch (err: any) {
       setError("Failed to delete task");
@@ -111,7 +113,7 @@ const TaskCard: React.FC = () => {
     setAssignedUser(filters.assignedUser);
   };
 
-  const sortHandler = (value) => {
+  const sortHandler = (value:string) => {
     switch (value) {
       case "dueDate-asc":
         setSortBy("dueDate");
@@ -133,7 +135,7 @@ const TaskCard: React.FC = () => {
     setSort((prev) => !prev);
   };
 
-  if (loadingTasks) return <Loader/>
+  if (loadingTasks) return <Loader />;
   if (tasks.length === 0)
     return <div className="text-center mt-4">Sorry no task found </div>;
   if (error)

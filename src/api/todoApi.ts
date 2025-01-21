@@ -1,4 +1,5 @@
 import apiClient from ".";
+import { Task} from "../interfaces/api/interfaces";
 
 export const getTasks = async () => {
   try {
@@ -10,7 +11,7 @@ export const getTasks = async () => {
   }
 };
 
-export const addItem = async (itemData) => {
+export const addItem = async (itemData:Task) => {
   try {
     const response = await apiClient.post("/todo", itemData);
     return response.data;
@@ -20,7 +21,7 @@ export const addItem = async (itemData) => {
   }
 };
 
-export const getSpecificUser = async (id) => {
+export const getSpecificUser = async (id:string) => {
   try {
     const response = await apiClient.get(`/todo/${id}`);
     return response.data;
@@ -30,7 +31,7 @@ export const getSpecificUser = async (id) => {
   }
 };
 
-export const updateItem = async (id, itemData) => {
+export const updateItem = async (id:string, itemData:Task) => {
   try {
     const response = await apiClient.put(`/todo/${id}`, itemData);
     return response.data;
@@ -40,7 +41,7 @@ export const updateItem = async (id, itemData) => {
   }
 };
 
-export const deleteItem = async (taskId) => {
+export const deleteItem = async (taskId:string) => {
   try {
     const response = await apiClient.delete(`/todo/${taskId}`);
     return response.data;

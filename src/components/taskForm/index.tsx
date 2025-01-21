@@ -5,6 +5,7 @@ import * as yup from "yup";
 import { format } from "date-fns";
 import useTaskFormData from "../../utils/customHooks/useTaskFormData";
 import Loader from "../loader";
+import { User } from "../../interfaces/api/interfaces";
 
 const schema = yup.object().shape({
   title: yup.string().required("Title is required"),
@@ -35,6 +36,7 @@ const AddForm = ({
 }) => {
   const { userList, taskDetails, loading, error, createTask, updateTask } =
     useTaskFormData(taskId);
+    
 
   const {
     register,
@@ -149,7 +151,7 @@ const AddForm = ({
             id="assignedUser"
             className="mt-1 block w-full p-2 border"
           >
-            {userList.map((user) => (
+            {userList.map((user:User) => (
               <option key={user.id} value={user.id}>
                 {user.name}
               </option>

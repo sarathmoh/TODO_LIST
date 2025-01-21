@@ -8,7 +8,6 @@ const sortOptions = [
 ];
 
 interface TaskSortProps {
-  sortBy: string;
   onSortChange: (sortCriteria: string) => void;
 }
 
