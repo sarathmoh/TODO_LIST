@@ -7,10 +7,6 @@ interface TaskItemProps {
 }
 
 const TaskItem: React.FC<TaskItemProps> = ({ task, onDelete, navigate }) => {
-
-
-  console.log(task,"thetask");
-  
   return (
     <div className="bg-white shadow-md rounded-lg p-4 border border-gray-200">
       <h2 className="text-xl font-bold mb-2">{task.title}</h2>
