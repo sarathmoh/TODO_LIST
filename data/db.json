@@ -20,16 +20,6 @@
       "tags": []
     },
     {
-      "priority": "low",
-      "assignedUser": "3",
-      "description": "PLease study python",
-      "dueDate": "2025-01-23",
-      "status": "todo",
-      "title": "bajango",
-      "id": "be8f9",
-      "tags": []
-    },
-    {
       "id": "b8e8f",
       "priority": "low",
       "assignedUser": "3",
